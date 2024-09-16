@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
+import { AddTodo } from './add-todo'
+
 const filterSchema = z.object({
   title: z
     .string()
@@ -41,7 +43,7 @@ export function FilterForm({ title }: FilterFormProps) {
 
   return (
     <Form {...form}>
-      <form className="flex items-center w-full gap-2">
+      <form className="flex items-center w-full gap-2 mb-4">
         <FormField
           control={form.control}
           name="title"
@@ -64,6 +66,7 @@ export function FilterForm({ title }: FilterFormProps) {
           <Search className="size-4" />
           <span>Filtrar</span>
         </Button>
+        <AddTodo />
       </form>
     </Form>
   )

@@ -3,6 +3,8 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
+import { Provider } from './providers'
+
 const inter = Inter({
   style: ['normal'],
 })
@@ -22,7 +24,7 @@ export default function RootLayout({
       <body
         className={`${inter.className} h-dvh min-h-dvh w-dvw min-w-dvw bg-zinc-950`}
       >
-        {children}
+        <Provider>{children}</Provider>
       </body>
     </html>
   )
