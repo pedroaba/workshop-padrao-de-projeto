@@ -1,81 +1,102 @@
-# Turborepo starter
+# WorkShop Padrão de Projeto - Todo App
 
-This is an official starter Turborepo.
+<img src="./docs/thumb.png">
 
-## Using this example
+## Requisitos
 
-Run the following command:
+- [Node.JS](https://nodejs.org/en)
+- [VSCode](htthttps://code.visualstudio.com/download)
 
-```sh
-npx create-turbo@latest
+## Projeto
+
+O projeto consiste em um app de Todo simples desenvolvido em [NextJs](https://nextjs.org/) e [Turbo Repo](https://turbo.build/), ele foi construído para poder demonstrar o padrão de projeto monorepo e novos padrões de projetos com nextjs que trazem segurança no desenvolvimento e manutenibilidade, como Server Actions com [ZSA](https://zsa.vercel.app/docs/introduction) ou [Next Safe Actions](https://next-safe-action.dev/docs/getting-started) e [TRPC](https://trpc.io).
+
+### Quando faz sentido utilizar um monorepo?
+
+Um monorepo faz sentido utilizar quando temos o frontend e o backend sendo desenvolvidos pela mesma equipe, ou seja, o time de desenvolvedores é ***fullstack***. Já quando o seu time for mais definido o papel de cada um não faz sentido, pois a parte organizacional do repositório e da codebase poderá ficar complicado de se dar manutenção por conta que irá misturar issues, pull requests na mesma codebase com algo que por exemplo o time de frontend não precisaria estar se preocupando. Agora com um time ***fullstack*** iremos poder ter um ganho no desenvolvimento do software, pois poderemos compartilhar funções, componentes e regras entre projetos.
+
+Um exemplo de Monorepo seria o [**Midday**](https://github.com/midday-ai/midday/tree/main).
+
+
+### O que é o turborepo?
+
+Turbo repo é um ferramenta utilizada para criação de monorepos, ela auxilia e agiliza alguns processos como o de build, execução em ambiente local, além de também utilizar de um recurso dos gerenciadores de pacotes como o ***npm***, ***yarn***, ***pnpm*** ou o ***bun***, esse recurso é o **workspaces**.
+
+Uma das vantagens do turborepo é que ele tem um sistema de cache muito forte, ou seja, caso eu alterar um arquivo no meu frontend e depois for realizar um build da aplicação, caso já tenha rodado o build do backend anteriormente e ele não foi alterado no até o momento que estamos realizando a build, o turborepo é inteligente o suficiente para poder buscar o build do backend que está já está feito em cache e realizar a build apenas do que foi modificado que no exemplo é o frontend. Esse processo de cache pode ser "linkado" com um processo de **CI/CD**, para que durante a pipeline ele possa ser utilizado deixando o vários comandos/processos que serão executados muito mais rápido. 
+
+#### Workspaces
+
+Workspaces é um recurso utilizado para poder evitar dependência duplicadas em nosso monorepo, ou seja, caso os nossos projetos e pacotes utilizem do **ESlint**, **Prettier** ou até mesmo o **BiomeJS** (lançado recentemente no mercado) por exemplo, eles não precisam estar duplicados em todos os projetos, pensando nisso foi criado o workspaces.
+
+### tRPC (Typescript Remote Procedure Call)
+
+Ele trabalha com um conceito chamado **Remote Procedure Call (RPC)**, esse conceito nos mostra uma forma alternativa de como executar algo em outro computador.
+
+A forma mais tradicional e que a maioria dos desenvolvedores conhece é utilizando HTTP ou Rest APIs, nas quais nós chamamos uma **rota** e conseguimos uma resposta positiva ou negativa dependendo do que enviamos. Já o RPC, nós chamamos uma **função** e conseguimos uma resposta, também positiva ou negativa.
+
+Exemplo:
+
+```typescript
+// HTTP/REST
+const res = await fetch('/api/users/1');
+const user = await res.json();
+
+// RPC
+const user = await api.users.getById({ id: 1 });
 ```
 
-## What's inside?
+O tRPC foi construído seguindo esse conceito e desenhado para monorepo, porém ele não é a única ferramenta que implementa o RPC, temos também a **RMI (Java Remote Method Invocation)** e o **gRPC (Google Remote Procedure Call)**.
 
-This Turborepo includes the following packages/apps:
+Abaixo está uma tabela sobre os termos utilizados:
 
-### Apps and Packages
+| Termo            | Descrição                                                                                                  |
+|------------------|------------------------------------------------------------------------------------------------------------|
+| Procedure ↗      | Endpoint de API - pode ser uma query, mutação ou subscription.                                              |
+| Query            | Um procedimento que obtém alguns dados.                                                                     |
+| Mutation         | Um procedimento que cria, atualiza ou deleta alguns dados.                                                  |
+| Subscription ↗   | Um procedimento que cria uma conexão persistente e escuta mudanças.                                          |
+| Router ↗         | Uma coleção de procedimentos (e/ou outros roteadores) sob um namespace compartilhado.                       |
+| Context ↗        | Coisas que todo procedimento pode acessar. Comumente usado para coisas como estado de sessão e conexões de banco de dados. |
+| Middleware ↗     | Uma função que pode executar código antes e depois de um procedimento. Pode modificar o contexto.            |
+| Validation ↗     | "Esses dados de entrada contêm as informações corretas?"                                                    |
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Porque utilizar ZSA ou Next Safe Actions?
 
-### Utilities
+ZSA ou Next Safe Actions são ferramentas que foram criadas para tornar mais simples a utilização e criação de **server actions** do NextJS, ou seja, são ferramentas focadas em developer experience. Com elas se torna mais fácil alguns procedimentos como validação, controle de fluxo, error handling, entre outros..
 
-This Turborepo has some additional tools already setup for you:
+Exemplo com ZSA:
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+```typescript
+import { createServerAction } from 'zsa';
+import { z } from 'zod';
 
-### Build
+export const myAction = createServerAction()
+  .input(
+    z.object({
+      name: z.string(),
+      age: z.number().min(18),
+    })
+  )
+  .handler(async ({ input }) => {
+    // input is validated to match the schema
+    console.log(input.name, input.age); 
+  });
 
-To build all apps and packages, run the following command:
+/** uso no componente */
+import { useServerAction } from "zsa-react";
 
+export default function IncrementExample() {
+  const { 
+    isPending,
+    execute,
+    data, 
+    error, 
+    isError 
+  } = useServerAction(myAction); 
+  
+  return (
+    // component
+  )
+}
 ```
-cd my-turborepo
-pnpm build
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
